@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>N'oublie pas 🌙</title>
+<meta name="theme-color" content="#1B1B3A">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#1B1B3A;
+    --bg-mid:#3A2145;
+    --gold:#F2B85C;
+    --gold-dim:#5C5240;
+    --cream:#F5EFE6;
+    --muted:#B8AFC9;
+    --coral:#E88A7D;
+    --card-bg:rgba(245,239,230,0.05);
+    --card-border:rgba(242,184,92,0.16);
+    --radius:20px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Inter',sans-serif;
+    color:var(--cream);
+    min-height:100dvh;
+    background:linear-gradient(160deg, var(--bg-deep) 0%, var(--bg-mid) 65%, #241333 100%);
+    background-attachment:fixed;
+    display:flex;
+    justify-content:center;
+    padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+    position:relative;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      radial-gradient(1.5px 1.5px at 10% 20%, rgba(255,255,255,0.35), transparent),
+      radial-gradient(1px 1px at 80% 15%, rgba(255,255,255,0.25), transparent),
+      radial-gradient(1.5px 1.5px at 60% 8%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1px 1px at 30% 35%, rgba(255,255,255,0.2), transparent),
+      radial-gradient(1.5px 1.5px at 90% 45%, rgba(255,255,255,0.25), transparent),
+      radial-gradient(1px 1px at 45% 55%, rgba(255,255,255,0.18), transparent);
+    pointer-events:none;
+    opacity:0.8;
+  }
+  .app{ width:100%; max-width:420px; position:relative; z-index:1; }
+
+  header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; }
+  header .header-left{ display:flex; align-items:center; gap:14px; }
+  .couple-photo{
+    width:68px; height:68px; border-radius:50%; object-fit:cover; flex-shrink:0;
+    border:2px solid var(--gold); box-shadow:0 0 0 3px rgba(242,184,92,0.15);
+  }
+  header .greeting{ font-family:'Fraunces',serif; font-weight:600; font-size:28px; line-height:1.15; }
+  header .subtitle{ color:var(--muted); font-size:14px; margin-top:6px; }
+  #gearBtn{
+    background:var(--card-bg); border:1px solid var(--card-border); color:var(--cream);
+    width:42px; height:42px; border-radius:50%; font-size:18px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  #gearBtn:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible{
+    outline:2px solid var(--gold); outline-offset:2px;
+  }
+
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:28px 24px;
+    backdrop-filter:blur(6px);
+    text-align:center;
+  }
+
+  .status-label{ font-size:13px; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); margin-bottom:6px;}
+  .status-value{ font-family:'Fraunces',serif; font-size:22px; font-weight:600; margin-bottom:22px; }
+  .status-value.taken{ color:var(--gold); }
+  .status-value.pending{ color:var(--coral); }
+
+  .constellation{ width:100%; height:90px; margin:4px 0 22px; }
+  .constellation .day-label{ font-size:10px; fill:var(--muted); font-family:'Space Mono',monospace; }
+
+  .check-btn{
+    width:100%;
+    padding:18px;
+    border-radius:16px;
+    border:none;
+    background:var(--gold);
+    color:#241333;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:16px;
+    cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
+    box-shadow:0 8px 24px rgba(242,184,92,0.25);
+  }
+  .check-btn:active{ transform:scale(0.98); }
+  .check-btn.done{
+    background:transparent;
+    border:1px solid var(--gold);
+    color:var(--gold);
+    box-shadow:none;
+  }
+  .check-btn:disabled{ cursor:default; }
+
+  .streak-row{
+    display:flex; align-items:baseline; justify-content:center; gap:8px;
+    margin-top:18px; color:var(--muted); font-size:13px;
+  }
+  .streak-row .num{ font-family:'Space Mono',monospace; color:var(--gold); font-size:16px; }
+
+  .info-row{
+    margin-top:22px; text-align:center;
+  }
+  #notifBtn{
+    background:none; border:1px solid var(--card-border); color:var(--muted);
+    padding:10px 16px; border-radius:12px; font-size:13px; cursor:pointer;
+  }
+  .fineprint{ margin-top:14px; font-size:12px; line-height:1.5; color:var(--muted); opacity:0.75; }
+
+  /* Modal */
+  .overlay{
+    position:fixed; inset:0; background:rgba(15,10,25,0.6);
+    display:none; align-items:flex-end; justify-content:center; z-index:10;
+    backdrop-filter:blur(2px);
+  }
+  .overlay.open{ display:flex; }
+  .sheet{
+    width:100%; max-width:420px;
+    background:#241333;
+    border:1px solid var(--card-border);
+    border-bottom:none;
+    border-radius:24px 24px 0 0;
+    padding:26px 24px max(26px, env(safe-area-inset-bottom));
+  }
+  .sheet h2{ font-family:'Fraunces',serif; font-size:20px; margin-bottom:18px; }
+  .field{ margin-bottom:18px; }
+  .field label{ display:block; font-size:13px; color:var(--muted); margin-bottom:8px; }
+  .field input, .field select{
+    width:100%; padding:12px 14px; border-radius:10px;
+    background:rgba(245,239,230,0.06); border:1px solid var(--card-border);
+    color:var(--cream); font-family:'Space Mono',monospace; font-size:15px;
+  }
+  .sheet-actions{ display:flex; gap:10px; margin-top:22px; }
+  .sheet-actions button{
+    flex:1; padding:13px; border-radius:12px; border:none; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  #saveSettings{ background:var(--gold); color:#241333; }
+  #closeSettings{ background:rgba(245,239,230,0.08); color:var(--cream); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="header-left">
+        <img id="couplePhoto" class="couple-photo" src="./photo-couple.jpg" alt="" onerror="this.style.display='none'">
+        <div>
+          <div class="greeting" id="greeting">Bonjour Ponpon</div>
+          <div class="subtitle" id="subtitle">not a mini nous pour cette time</div>
+        </div>
+      </div>
+      <button id="gearBtn" aria-label="Réglages">⚙️</button>
+    </header>
+
+    <div class="card">
+      <div class="status-label">Aujourd'hui</div>
+      <div class="status-value" id="statusValue">—</div>
+
+      <svg class="constellation" id="constellation" viewBox="0 0 340 90"></svg>
+
+      <button class="check-btn" id="checkBtn">J'ai pris ma pilule ✓</button>
+
+      <div class="streak-row">
+        <span>série en cours</span>
+        <span class="num" id="streakNum">0</span>
+        <span>★</span>
+      </div>
+    </div>
+
+    <div class="info-row">
+      <button id="notifBtn">Activer les notifications</button>
+      <p class="fineprint">
+        Rappel réglé sur <strong id="alarmTimeDisplay">20:30</strong>, relance toutes les <strong id="intervalDisplay">1h</strong> tant que ce n'est pas coché — envoyé par le serveur, ça marche même appli fermée, iPhone compris.
+        Condition unique : avoir installé l'appli sur l'écran d'accueil et activé les notifications une première fois.
+      </p>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="sheet">
+      <h2>Réglages</h2>
+      <div class="field">
+        <label for="alarmTimeInput">Heure du rappel</label>
+        <input type="time" id="alarmTimeInput" value="20:30">
+      </div>
+      <div class="field">
+        <label for="intervalSelect">Relance toutes les</label>
+        <select id="intervalSelect">
+          <option value="30">30 minutes</option>
+          <option value="60" selected>1 heure</option>
+          <option value="120">2 heures</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="nameInput">Prénom (optionnel)</label>
+        <input type="text" id="nameInput" placeholder="Pour personnaliser le message">
+      </div>
+      <div class="sheet-actions">
+        <button id="closeSettings">Annuler</button>
+        <button id="saveSettings">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Clé publique VAPID — sert à s'abonner aux notifications push envoyées par le serveur.
+  // (La clé privée correspondante ne vit que côté serveur, jamais ici.)
+  const VAPID_PUBLIC_KEY = 'BBcIqmq1_FZfFm1cJuzkbPFu9G4j1XL9QFM647fhkn3pwQizMJAmLs5PJTmilaOReLOUuvduzRPAm4AAqH6G4BQ';
+
+  function urlBase64ToUint8Array(base64String){
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+  }
+
+  const HISTORY_KEY = 'np_history';
+  const SETTINGS_KEY = 'np_settings';
+  const ATTEMPT_KEY = 'np_last_attempt';
+
+  const defaultSettings = { alarmTime: '20:30', intervalMinutes: 60, name: '' };
+
+  function dateKey(d){
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function getHistory(){ try{ return JSON.parse(localStorage.getItem(HISTORY_KEY)) || {}; }catch(e){ return {}; } }
+  function setHistory(h){ localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); }
+  function getSettings(){ try{ return Object.assign({}, defaultSettings, JSON.parse(localStorage.getItem(SETTINGS_KEY))); }catch(e){ return {...defaultSettings}; } }
+  function setSettings(s){ localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+  function getLastAttempt(){ try{ return JSON.parse(localStorage.getItem(ATTEMPT_KEY)) || {date:'', attempt:-1}; }catch(e){ return {date:'', attempt:-1}; } }
+  function setLastAttempt(date, attempt){ localStorage.setItem(ATTEMPT_KEY, JSON.stringify({date, attempt})); }
+
+  function isTakenToday(){ return !!getHistory()[dateKey(new Date())]; }
+
+  function markTakenToday(){
+    const h = getHistory();
+    const today = dateKey(new Date());
+    h[today] = true;
+    setHistory(h);
+    closeActiveReminders();
+    // Prévient le serveur, pour que le rappel programmé côté serveur s'arrête aussi.
+    fetch('/api/mark-taken', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: today })
+    }).catch(() => {});
+    render();
+  }
+
+  function computeStreak(){
+    const h = getHistory();
+    let count = 0;
+    let cursor = new Date();
+    // if today not yet taken, start counting from yesterday so streak isn't broken mid-evening
+    if (!h[dateKey(cursor)]) cursor.setDate(cursor.getDate()-1);
+    while (h[dateKey(cursor)]){
+      count++;
+      cursor.setDate(cursor.getDate()-1);
+    }
+    return count;
+  }
+
+  function renderConstellation(){
+    const svg = document.getElementById('constellation');
+    const h = getHistory();
+    const days = [];
+    const labels = ['D','L','M','M','J','V','S'];
+    for (let i=6; i>=0; i--){
+      const d = new Date();
+      d.setDate(d.getDate()-i);
+      days.push({ key: dateKey(d), label: labels[d.getDay()], isToday: i===0, taken: !!h[dateKey(d)] });
+    }
+    const W = 340, H = 90, pad = 28;
+    const step = (W - pad*2) / (days.length - 1);
+    const amp = 14;
+    const pts = days.map((d, i) => {
+      const x = pad + i*step;
+      const y = 38 + Math.sin(i*0.9) * amp;
+      return {...d, x, y};
+    });
+
+    let svgContent = '';
+    // connecting line
+    svgContent += `<polyline points="${pts.map(p=>`${p.x},${p.y}`).join(' ')}" fill="none" stroke="rgba(242,184,92,0.25)" stroke-width="1.5"/>`;
+    pts.forEach(p => {
+      const r = p.isToday ? 8 : 6;
+      const fill = p.taken ? 'var(--gold)' : 'transparent';
+      const stroke = p.taken ? 'var(--gold)' : 'rgba(184,175,201,0.5)';
+      svgContent += `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" ${p.isToday ? 'opacity="0.95"' : ''}/>`;
+      svgContent += `<text x="${p.x}" y="${p.y+24}" text-anchor="middle" class="day-label">${p.label}</text>`;
+    });
+    svg.innerHTML = svgContent;
+  }
+
+  function render(){
+    const taken = isTakenToday();
+    const statusEl = document.getElementById('statusValue');
+    const btn = document.getElementById('checkBtn');
+    const hour = new Date().getHours();
+    document.getElementById('greeting').textContent = hour < 18 ? 'Bonjour' : 'Bonjour Ponpon';
+
+    document.getElementById('subtitle').textContent = 'not a mini nous pour cette time';
+    const settings = getSettings();
+
+    if (taken){
+      statusEl.textContent = '✨ Prise aujourd\'hui';
+      statusEl.className = 'status-value taken';
+      btn.textContent = 'Prise ✓';
+      btn.classList.add('done');
+      btn.disabled = true;
+    } else {
+      statusEl.textContent = 'Pas encore prise';
+      statusEl.className = 'status-value pending';
+      btn.textContent = "J'ai pris ma pilule ✓";
+      btn.classList.remove('done');
+      btn.disabled = false;
+    }
+
+    document.getElementById('streakNum').textContent = computeStreak();
+    document.getElementById('alarmTimeDisplay').textContent = settings.alarmTime;
+    document.getElementById('intervalDisplay').textContent = settings.intervalMinutes >= 60
+      ? (settings.intervalMinutes/60) + 'h'
+      : settings.intervalMinutes + 'min';
+
+    renderConstellation();
+  }
+
+  // ---- Service worker + notifications ----
+  let swRegistration = null;
+  if ('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      swRegistration = reg;
+      // best-effort periodic background sync (Chrome/Android only)
+      if ('periodicSync' in reg){
+        navigator.permissions.query({name:'periodic-background-sync'}).then(status => {
+          if (status.state === 'granted'){
+            reg.periodicSync.register('pill-check', { minInterval: 60*60*1000 }).catch(()=>{});
+          }
+        }).catch(()=>{});
+      }
+    }).catch(()=>{});
+  }
+
+  function sendReminder(attempt){
+    const settings = getSettings();
+    const body = settings.name
+      ? `${settings.name}, un petit rappel : as-tu pris ta pilule ce soir ?`
+      : `As-tu pris ta pilule ce soir ?`;
+    const payload = { type:'SHOW_REMINDER', title:"N'oublie pas 🌙", body, tag: 'pilule-reminder-' + attempt };
+    if (navigator.serviceWorker.controller){
+      navigator.serviceWorker.controller.postMessage(payload);
+    } else if (Notification.permission === 'granted'){
+      new Notification(payload.title, { body: payload.body, tag: payload.tag, requireInteraction: true });
+    }
+  }
+
+  function closeActiveReminders(){
+    if (navigator.serviceWorker.controller){
+      navigator.serviceWorker.controller.postMessage({ type:'CLOSE_REMINDERS' });
+    }
+  }
+
+  // ---- Abonnement push serveur (fonctionne même app fermée, y compris iPhone) ----
+  async function subscribeToServerPush(){
+    if (!swRegistration || !('pushManager' in swRegistration)) return false;
+    try{
+      let sub = await swRegistration.pushManager.getSubscription();
+      if (!sub){
+        sub = await swRegistration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+      }
+      await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sub)
+      });
+      await syncSettingsToServer();
+      return true;
+    } catch(err){
+      console.warn('Abonnement push impossible :', err);
+      return false;
+    }
+  }
+
+  function syncSettingsToServer(){
+    const settings = getSettings();
+    return fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings)
+    }).catch(() => {});
+  }
+
+  function checkReminders(){
+    if (isTakenToday()) return;
+    if (Notification.permission !== 'granted') return;
+    const settings = getSettings();
+    const [h, m] = settings.alarmTime.split(':').map(Number);
+    const alarmDate = new Date();
+    alarmDate.setHours(h, m, 0, 0);
+    const now = new Date();
+    if (now < alarmDate) return;
+
+    const elapsedMin = Math.floor((now - alarmDate) / 60000);
+    const attempt = Math.floor(elapsedMin / settings.intervalMinutes);
+    const today = dateKey(now);
+    const last = getLastAttempt();
+
+    if (last.date !== today || last.attempt < attempt){
+      sendReminder(attempt);
+      setLastAttempt(today, attempt);
+    }
+  }
+
+  // ---- Settings modal ----
+  const overlay = document.getElementById('overlay');
+  document.getElementById('gearBtn').addEventListener('click', () => {
+    const s = getSettings();
+    document.getElementById('alarmTimeInput').value = s.alarmTime;
+    document.getElementById('intervalSelect').value = String(s.intervalMinutes);
+    document.getElementById('nameInput').value = s.name || '';
+    overlay.classList.add('open');
+  });
+  document.getElementById('closeSettings').addEventListener('click', () => overlay.classList.remove('open'));
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+  document.getElementById('saveSettings').addEventListener('click', () => {
+    setSettings({
+      alarmTime: document.getElementById('alarmTimeInput').value || '20:30',
+      intervalMinutes: Number(document.getElementById('intervalSelect').value),
+      name: document.getElementById('nameInput').value.trim()
+    });
+    setLastAttempt('', -1);
+    overlay.classList.remove('open');
+    syncSettingsToServer();
+    render();
+  });
+
+  document.getElementById('checkBtn').addEventListener('click', markTakenToday);
+
+  document.getElementById('notifBtn').addEventListener('click', () => {
+    if (!('Notification' in window)){
+      alert("Ce navigateur ne supporte pas les notifications.");
+      return;
+    }
+    Notification.requestPermission().then(async (perm) => {
+      if (perm === 'granted'){
+        const ok = await subscribeToServerPush();
+        document.getElementById('notifBtn').textContent = ok ? 'Notifications activées ✓' : 'Activées (mode local seulement)';
+        checkReminders();
+      } else {
+        document.getElementById('notifBtn').textContent = 'Notifications refusées';
+      }
+    });
+  });
+
+  // ---- init ----
+  if ('Notification' in window && Notification.permission === 'granted'){
+    document.getElementById('notifBtn').textContent = 'Notifications activées ✓';
+  }
+  render();
+  checkReminders();
+  setInterval(checkReminders, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden){ render(); checkReminders(); } });
+</script>
+</body>
+</html>
