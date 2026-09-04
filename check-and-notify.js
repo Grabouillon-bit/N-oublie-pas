@@ -3,8 +3,21 @@ const { redis } = require('./_redis');
 
 const DEFAULTS = { alarmTime: '20:30', intervalMinutes: 60, name: '' };
 
-function todayKey(d) {
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+// Le serveur Vercel tourne en UTC, pas en heure de Paris. On calcule donc
+// la date et l'heure "telles que vues à Paris" explicitement, plutôt que de
+// se fier au fuseau du serveur (ce qui décalait tout de 1h ou 2h selon la
+// saison, et faisait croire que l'heure de l'alarme n'était jamais atteinte).
+function parisParts(d) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Paris',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(d);
+  const get = (t) => parts.find((p) => p.type === t).value;
+  return {
+    dateKey: `${get('year')}-${get('month')}-${get('day')}`,
+    minutesOfDay: Number(get('hour')) * 60 + Number(get('minute')),
+  };
 }
 
 module.exports = async (req, res) => {
@@ -28,7 +41,7 @@ module.exports = async (req, res) => {
       : DEFAULTS;
 
     const now = new Date();
-    const today = todayKey(now);
+    const { dateKey: today, minutesOfDay: nowMin } = parisParts(now);
 
     const taken = await redis.get('history:' + today);
     if (taken) {
@@ -37,14 +50,13 @@ module.exports = async (req, res) => {
     }
 
     const [h, m] = String(settings.alarmTime).split(':').map(Number);
-    const alarmDate = new Date(now);
-    alarmDate.setHours(h, m, 0, 0);
-    if (now < alarmDate) {
+    const alarmMin = h * 60 + m;
+    if (nowMin < alarmMin) {
       res.status(200).json({ ok: true, skipped: 'before alarm time' });
       return;
     }
 
-    const elapsedMin = Math.floor((now - alarmDate) / 60000);
+    const elapsedMin = nowMin - alarmMin;
     const intervalMinutes = Number(settings.intervalMinutes) || 60;
     const attempt = Math.floor(elapsedMin / intervalMinutes);
 
