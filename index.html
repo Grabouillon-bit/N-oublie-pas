@@ -480,11 +480,32 @@
   // ---- init ----
   if ('Notification' in window && Notification.permission === 'granted'){
     document.getElementById('notifBtn').textContent = 'Notifications activées ✓';
+    // Re-synchronise l'abonnement serveur à CHAQUE ouverture, en silence.
+    // Avant : on affichait "activées" simplement parce que la permission
+    // navigateur était accordée, sans jamais vérifier que le serveur avait
+    // bien un abonnement valide et à jour. Si l'enregistrement initial avait
+    // échoué (réseau, timing du service worker) ou avait été effacé côté
+    // serveur (abonnement expiré, cf. check-and-notify.js), rien ne le
+    // réparait automatiquement — le bouton mentait par optimisme.
+    resyncPushSubscription();
   }
   render();
   checkReminders();
   setInterval(checkReminders, 30000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden){ render(); checkReminders(); } });
+
+  async function resyncPushSubscription(){
+    if (!('serviceWorker' in navigator)) return;
+    try {
+      swRegistration = await navigator.serviceWorker.ready;
+      const ok = await subscribeToServerPush();
+      document.getElementById('notifBtn').textContent = ok
+        ? 'Notifications activées ✓'
+        : 'Activées (mode local seulement)';
+    } catch(e){
+      console.warn('Re-synchronisation abonnement échouée :', e);
+    }
+  }
 </script>
 </body>
 </html>
